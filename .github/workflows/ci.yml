@@ -1,0 +1,46 @@
+name: EpiProxy CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    # We need a Redis service for integration tests to pass
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[dev]
+
+    - name: Run Tests
+      env:
+        # Override the redis URL to point to the service we started in the workflow
+        # Without requirepass since the test redis service above doesn't have one
+        EpiProxy_REDIS_URL: redis://localhost:6379
+        EpiProxy_LOG_LEVEL: DEBUG
+      run: |
+        pytest tests/ -v
