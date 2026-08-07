@@ -36,7 +36,6 @@ def writer_node(state: AgentState):
 def publisher_node(state: AgentState):
     return {"messages": ["Published."]}
 
-# Mock heuristic classifier to avoid Heavy ML imports in E2E tests
 class MockHeuristicClassifier:
     def __init__(self, *args, **kwargs):
         pass
@@ -52,16 +51,13 @@ class MockHeuristicClassifier:
 async def test_langgraph_quarantine_trigger():
     proxy = SwarmProxy()
     
-    # Pre-seed the DAG to simulate a wider swarm topology (fan-out = 3)
     proxy.dag.add_message("writer", "publisher")
     proxy.dag.add_message("writer", "editor")
     proxy.dag.add_message("writer", "archiver")
     
-    # Wrap nodes
     wrapped_writer = wrap_node(writer_node, proxy, source_agent="researcher", target_agent="writer", trust_tier=2)
     wrapped_publisher = wrap_node(publisher_node, proxy, source_agent="writer", target_agent="publisher", trust_tier=2)
 
-    # Build Graph
     builder = StateGraph(AgentState)
     builder.add_node("researcher", researcher_node)
     builder.add_node("writer", wrapped_writer)
@@ -74,13 +70,10 @@ async def test_langgraph_quarantine_trigger():
 
     graph = builder.compile()
 
-    # 1. Send clean message through graph
     clean_state = {"messages": [{"content": "The latest research shows that LLMs are scaling well."}]}
     result = await graph.ainvoke(clean_state)
     assert len(result["messages"]) > 0
 
-    # 2. Send malicious message through graph
-    # We simulate this by having the initial state containing malicious payload
     class FakeMessage:
         def __init__(self, content):
             self.content = content
@@ -90,10 +83,8 @@ async def test_langgraph_quarantine_trigger():
     with pytest.raises(QuarantineException, match="Message blocked"):
         await graph.ainvoke(malicious_state)
             
-    # 3. Verify researcher is now quarantined (as source to writer)
     assert proxy.circuit_breaker.is_quarantined("researcher") == True
     
-    # 4. Attempt to send another message from quarantined agent
     msg3_state = {"messages": [FakeMessage("Hello again")]}
     
     with pytest.raises(QuarantineException, match="is quarantined"):
