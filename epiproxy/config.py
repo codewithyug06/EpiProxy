@@ -7,10 +7,8 @@ class Settings(BaseSettings):
     heuristic_threshold: float = Field(default=0.3, description="Score threshold for heuristic classifier")
     circuit_breaker_threshold: float = Field(default=1.0, description="R0 threshold to trip circuit breaker")
     
-    # Logging configuration
     log_level: str = Field(default="INFO", description="Logging level (DEBUG, INFO, WARNING, ERROR)")
     
-    # LangGraph specific configs
     langgraph_timeout_seconds: float = Field(default=10.0, description="Timeout for LangGraph wrapper")
 
     model_config = SettingsConfigDict(
