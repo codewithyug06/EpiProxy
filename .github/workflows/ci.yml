@@ -23,24 +23,20 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v4
+    - name: Set up Java 17
+      uses: actions/setup-java@v3
       with:
-        python-version: "3.12"
-        cache: 'pip'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e .[dev]
+        java-version: '17'
+        distribution: 'temurin'
+        cache: 'maven'
 
     - name: Run Tests
       env:
         # Override the redis URL to point to the service we started in the workflow
         # Without requirepass since the test redis service above doesn't have one
-        EpiProxy_REDIS_URL: redis://localhost:6379
-        EpiProxy_LOG_LEVEL: DEBUG
+        EPIPROXY_REDIS_URL: redis://localhost:6379
+        EPIPROXY_LOG_LEVEL: DEBUG
       run: |
-        pytest tests/ -v
+        mvn -B test
