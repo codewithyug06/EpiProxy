@@ -1,0 +1,19 @@
+<configuration>
+    <!-- EpiProxyConfig bridges EPIPROXY_LOG_LEVEL into this system property before
+         logback initializes, so it drives the com.epiproxy root level below. -->
+    <variable name="LOG_LEVEL" value="${LOG_LEVEL:-INFO}" />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.epiproxy" level="${LOG_LEVEL}" />
+    <logger name="io.lettuce" level="WARN" />
+    <logger name="dev.langchain4j" level="WARN" />
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>

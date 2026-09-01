@@ -1,5 +1,7 @@
 package com.epiproxy.models;
 
+import java.util.Objects;
+
 public record AgentMessage(
         String sourceAgent,
         String targetAgent,
@@ -7,6 +9,13 @@ public record AgentMessage(
         int trustTier
 ) {
     public AgentMessage {
+        if (sourceAgent == null || sourceAgent.isBlank()) {
+            throw new IllegalArgumentException("sourceAgent must not be null or blank.");
+        }
+        if (targetAgent == null || targetAgent.isBlank()) {
+            throw new IllegalArgumentException("targetAgent must not be null or blank.");
+        }
+        Objects.requireNonNull(payload, "payload must not be null (use an empty string instead).");
         if (trustTier < 0 || trustTier > 3) {
             throw new IllegalArgumentException("Trust tier must be between 0 and 3.");
         }

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   redis:
     image: redis:7-alpine
@@ -8,11 +6,15 @@ services:
     volumes:
       - redis_data:/data
     command: >
-      redis-server 
-      --requirepass "epiproxy_secret" 
-      --appendonly yes 
-      --maxmemory 2gb 
+      redis-server
+      --appendonly yes
+      --maxmemory 2gb
       --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     deploy:
       resources:
         limits:
